@@ -1,41 +1,93 @@
-[app]
+name: Build Shift App Release
 
-# (str) Judul aplikasi
-title = Jadwal Shift App
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-# (str) Nama package -> package lengkap: org.shiftapp.shiftapp
-package.name = shiftapp
-package.domain = org.shiftapp
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
 
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,xlsx
-source.exclude_dirs = tests, tools, bin, venv, java_src, widget_res, .github, .git
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-# Ikon aplikasi (simpan gambar logo sebagai icon.png di root folder)
-icon.filename = %(source.dir)s/icon.png
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-version = 2.0
+      - name: Fix icon.png format
+        run: |
+          pip install pillow
+          python -c "from PIL import Image; Image.open('icon.png').convert('RGBA').resize((512, 512)).save('icon.png', 'PNG')"
 
-requirements = python3,kivy,pyjnius,openpyxl,et_xmlfile
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
-orientation = portrait
-fullscreen = 0
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential git autoconf automake libtool libltdl-dev \
+            pkg-config cmake libncurses-dev libffi-dev libssl-dev \
+            zlib1g-dev unzip zip
 
-# ---- Android ----
-android.api = 35
-android.minapi = 24
-android.archs = arm64-v8a, armeabi-v7a
-android.permissions = com.android.alarm.permission.SET_ALARM
-android.release_artifact = aab
+      - name: Install Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install "buildozer==1.6.0" "setuptools<81" virtualenv "cython<3.0"
 
-android.accept_sdk_license = True
+      - name: Prepare python-for-android with widget receiver
+        run: |
+          git clone --depth 1 --branch v2024.01.21 \
+            https://github.com/kivy/python-for-android.git "$HOME/p4a"
+          python tools/patch_p4a.py "$HOME/p4a" widget_res/receiver.xml
+          pip install -e "$HOME/p4a"
+          sed -i "/^\[app\]/a p4a.source_dir = $HOME/p4a" buildozer.spec
+          sed -i "s/android.release_artifact = aab/android.release_artifact = apk/g" buildozer.spec
+          grep -n "p4a\|release_artifact" buildozer.spec
 
-# ---- Widget homescreen ----
-android.add_src = java_src
-android.add_resources = widget_res/layout:layout, widget_res/xml:xml, widget_res/drawable:drawable
+      - name: Decode Keystore from Secrets
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/shift-app-release.jks"
 
-[buildozer]
+      - name: Cache Android SDK/NDK
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer
+          key: buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-
 
-log_level = 2
-warn_on_root = 1
-bin_dir = ./bin
+      - name: Build Signed APK with Buildozer
+        env:
+          P4A_RELEASE_KEYSTORE: ${{ github.workspace }}/shift-app-release.jks
+          P4A_RELEASE_KEYSTORE_PASSWD: ${{ secrets.KEYSTORE_PASSWORD }}
+          P4A_RELEASE_KEYALIAS: ${{ secrets.KEY_ALIAS }}
+          P4A_RELEASE_KEYALIAS_PASSWD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -o pipefail
+          buildozer -v android release > build.log 2>&1 || {
+            echo "=== LOG BUILDOZER ==="
+            grep -v "^#" build.log | tail -n 40
+            exit 1
+          }
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: bin/*.apk
+          if-no-files-found: error
