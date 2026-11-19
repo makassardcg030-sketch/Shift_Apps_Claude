@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pwidget_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="5dp" android:background="@drawable/widget_bg">
+
+    <!-- Nama personal -->
+    <TextView android:id="@+id/pwidget_name" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingLeft="3dp" android:paddingRight="3dp" android:paddingBottom="2dp"
+        android:text="Pilih Nama" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"
+        android:singleLine="true" android:ellipsize="end"/>
+
+    <!-- Jadwal sekarang -->
+    <LinearLayout android:id="@+id/p_duty_row" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:paddingLeft="6dp" android:paddingRight="6dp" android:gravity="center_vertical" android:background="#2563EB" android:orientation="horizontal">
+        <TextView android:id="@+id/p_duty_label" android:layout_width="30dp" android:layout_height="wrap_content"
+            android:text="Duty" android:textColor="#DBEAFE" android:textSize="9sp" android:textStyle="bold" android:singleLine="true"/>
+        <TextView android:id="@+id/pwidget_duty" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="-" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold" android:singleLine="true" android:ellipsize="end"/>
+    </LinearLayout>
+
+    <!-- Jadwal akan datang (off / cuti / libur tetap ditampilkan) -->
+    <LinearLayout android:id="@+id/p_next_row" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:layout_marginTop="2dp" android:paddingLeft="6dp" android:paddingRight="6dp" android:gravity="center_vertical" android:background="#FACC15" android:orientation="horizontal">
+        <TextView android:id="@+id/p_next_label" android:layout_width="30dp" android:layout_height="wrap_content"
+            android:text="Next" android:textColor="#713F12" android:textSize="9sp" android:textStyle="bold" android:singleLine="true"/>
+        <TextView android:id="@+id/pwidget_next" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="-" android:textColor="#0F172A" android:textSize="12sp" android:textStyle="bold" android:singleLine="true" android:ellipsize="end"/>
+    </LinearLayout>
+
+    <!-- Tombol alarm: ikon saja -->
+    <ImageView android:id="@+id/pwidget_btn_alarm" android:layout_width="match_parent" android:layout_height="26dp"
+        android:layout_marginTop="3dp" android:padding="4dp" android:scaleType="fitCenter"
+        android:src="@drawable/ic_alarm" android:background="#DC2626"
+        android:contentDescription="Setel alarm 1 jam sebelum shift"/>
+</LinearLayout>
