@@ -1,11 +1,11 @@
 [app]
 
 # (str) Judul aplikasi
-title = Jadwal Shift App
+title = Shift App
 
 # (str) Nama package -> package lengkap: org.shiftapp.shiftapp
-package.name = shiftapp
-package.domain = org.shiftapp
+package.name = shiftappclaude
+package.domain = org.shiftappclaude
 
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,xlsx
