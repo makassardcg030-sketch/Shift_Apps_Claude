@@ -143,6 +143,10 @@ class ShiftApp(BoxLayout):
         self.off_words = ("OFF", "LIBUR")
         self.cuti_words = ("C", "CUTI", "IZIN", "SAKIT")
 
+        self._buttons = []
+        self._cards = []
+        self.current_theme_name = "Slate Dark"
+
         scroll = ScrollView(do_scroll_x=False)
         root = BoxLayout(
             orientation="vertical",
@@ -319,12 +323,20 @@ class ShiftApp(BoxLayout):
     def change_theme(self, _, theme_name):
         global BG_DARK, CARD_BG, CARD_BORDER, ACCENT_BLUE
         if theme_name in THEMES:
+            self.current_theme_name = theme_name
             t = THEMES[theme_name]
             BG_DARK = t["BG_DARK"]
             CARD_BG = t["CARD_BG"]
             CARD_BORDER = t["CARD_BORDER"]
             ACCENT_BLUE = t["ACCENT_BLUE"]
             Window.clearcolor = BG_DARK
+
+            for card in self._cards:
+                card.set_bg(CARD_BG)
+            for btn in self._buttons:
+                if btn != self.btn_test_alarm:
+                    btn.set_bg(ACCENT_BLUE)
+
             self._set_status(f"Tema diubah ke {theme_name}")
 
     def download_template(self, *_):
@@ -521,6 +533,17 @@ class ShiftApp(BoxLayout):
 
     def _set_status(self, text):
         self.lbl_status.text = text
+
+    def _show_popup(self, title, message):
+        box = BoxLayout(orientation="vertical", padding=dp(16), spacing=dp(12))
+        lbl = Label(text=message, font_size=dp(14), halign="center", valign="middle")
+        lbl.bind(size=lambda *_: setattr(lbl, "text_size", lbl.size))
+        btn = ModernButton(text="OK", bg=ACCENT_BLUE, size_hint_y=None, height=dp(40))
+        box.add_widget(lbl)
+        box.add_widget(btn)
+        popup = Popup(title=title, content=box, size_hint=(0.82, 0.35))
+        btn.bind(on_press=popup.dismiss)
+        popup.open()
 
     def _store_path(self):
         return os.path.join(App.get_running_app().user_data_dir, "days.txt")

@@ -1,11 +1,11 @@
 [app]
 
 # (str) Judul aplikasi
-title = Shift App
+title = Jadwal Shift App
 
 # (str) Nama package -> package lengkap: org.shiftapp.shiftapp
-package.name = shiftappclaude
-package.domain = org.shiftappclaude
+package.name = shiftapp
+package.domain = org.shiftapp
 
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,xlsx
@@ -14,7 +14,7 @@ source.exclude_dirs = tests, tools, bin, venv, java_src, widget_res, .github, .g
 # Ikon aplikasi (simpan gambar logo sebagai icon.png di root folder)
 icon.filename = %(source.dir)s/icon.png
 
-version = 1.6
+version = 2.0
 
 requirements = python3,kivy,pyjnius,openpyxl,et_xmlfile
 
